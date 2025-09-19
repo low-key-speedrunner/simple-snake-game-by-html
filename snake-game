@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Snake Game</title>
+  <style>
+    body { margin: 0; background: #111; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    canvas { background: #222; border: 2px solid #0f0; }
+  </style>
+</head>
+<body>
+  <canvas id="game" width="400" height="400"></canvas>
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    const gridSize = 20;
+    let snake = [{ x: 200, y: 200 }];
+    let direction = { x: gridSize, y: 0 };
+    let food = spawnFood();
+    let score = 0;
+
+    function spawnFood() {
+      return {
+        x: Math.floor(Math.random() * canvas.width / gridSize) * gridSize,
+        y: Math.floor(Math.random() * canvas.height / gridSize) * gridSize
+      };
+    }
+
+    function gameLoop() {
+      const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+
+      // Collision with walls or self
+      if (
+        head.x < 0 || head.x >= canvas.width ||
+        head.y < 0 || head.y >= canvas.height ||
+        snake.some(segment => segment.x === head.x && segment.y === head.y)
+      ) {
+        alert("Game Over! Score: " + score);
+        snake = [{ x: 200, y: 200 }];
+        direction = { x: gridSize, y: 0 };
+        food = spawnFood();
+        score = 0;
+        return;
+      }
+
+      snake.unshift(head);
+
+      // Eat food
+      if (head.x === food.x && head.y === food.y) {
+        score++;
+        food = spawnFood();
+      } else {
+        snake.pop();
+      }
+
+      // Draw
+      ctx.fillStyle = "#222";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "#0f0";
+      snake.forEach(segment => ctx.fillRect(segment.x, segment.y, gridSize, gridSize));
+
+      ctx.fillStyle = "#f00";
+      ctx.fillRect(food.x, food.y, gridSize, gridSize);
+    }
+
+    document.addEventListener("keydown", e => {
+      const keyMap = {
+        ArrowUp: { x: 0, y: -gridSize },
+        ArrowDown: { x: 0, y: gridSize },
+        ArrowLeft: { x: -gridSize, y: 0 },
+        ArrowRight: { x: gridSize, y: 0 }
+      };
+      const newDir = keyMap[e.key];
+      if (newDir && (newDir.x !== -direction.x || newDir.y !== -direction.y)) {
+        direction = newDir;
+      }
+    });
+
+    setInterval(gameLoop, 100);
+  </script>
+</body>
+</html>
